@@ -3,6 +3,7 @@ const readline = require('readline');
 
 async function part1(path) {
   let ans = 0;
+  let impossible = [];
 
   try {
     const fileStream = fs.createReadStream(path);
@@ -11,69 +12,42 @@ async function part1(path) {
       crlfDelay: Infinity,
     });
 
-    let possibleGames = [];
-
+    let games = 0;
     for await (const line of rl) {
-      const gameAndRolls = line.split(':');
-      const id = gameAndRolls[0].split(' ')[1];
+      let [left, right] = line.trim().split(':');
+      let id = Number.parseInt(left.split(' ')[1]);
+      let rolls = right.split(';');
+      ans += id;
 
-      const turns = gameAndRolls[1].split(';');
+      for (const i of rolls) {
+        let colors = {
+          red: 0,
+          green: 0,
+          blue: 0,
+        };
 
-      let allTurnsInGame = [];
-      for (let roll of turns) {
-        roll = roll.replaceAll(' ', '').split(',');
-        for (let dice of roll) {
-          let numEnd = 0;
-          for (let i = 0; i < dice.length; i++) {
-            if (!isNaN(dice[i])) {
-              numEnd++;
-            }
-          }
-          const num = dice.substring(0, numEnd);
-          const color = dice.substring(numEnd, dice.length);
-
-          allTurnsInGame.push({
-            color,
-            num,
-          });
+        for (const j of i.split(',')) {
+          const [amt, color] = j.trim().split(' ');
+          colors[color] = Number.parseInt(amt);
         }
-      }
-      let isPossible = true;
-      for (let turn of allTurnsInGame) {
-        isPossible = checkColors(Number.parseInt(turn.num), turn.color);
-        if (!isPossible) {
-          break;
+
+        if (colors['red'] > 12 || colors['green'] > 13 || colors['blue'] > 14) {
+          impossible.push(id);
         }
-      }
-      if (isPossible) {
-        possibleGames.push(Number.parseInt(id));
       }
     }
 
-    ans = possibleGames.reduce((a, b) => a + b);
+    ans = ans - [...new Set(impossible)].reduce((a, b) => a + b);
+
     console.log(ans);
   } catch (err) {
     console.error(err);
   }
 }
-
-const checkColors = (num, color) => {
-  const red = 12;
-  const green = 13;
-  const blue = 14;
-
-  if (color === 'green' && num > green) {
-    return false;
-  } else if (color === 'blue' && num > blue) {
-    return false;
-  } else if (color === 'red' && num > red) {
-    return false;
-  }
-  return true;
-};
 
 async function part2(path) {
   let ans = 0;
+  let impossible = [];
 
   try {
     const fileStream = fs.createReadStream(path);
@@ -82,7 +56,37 @@ async function part2(path) {
       crlfDelay: Infinity,
     });
 
+    let games = 0;
     for await (const line of rl) {
+      let [left, right] = line.trim().split(':');
+      let id = Number.parseInt(left.split(' ')[1]);
+      let rolls = right.split(';');
+
+      let maxcolors = {
+        red: 0,
+        green: 0,
+        blue: 0,
+      };
+      for (const i of rolls) {
+        let colors = {
+          red: 0,
+          green: 0,
+          blue: 0,
+        };
+
+        for (const j of i.split(',')) {
+          const [amt, color] = j.trim().split(' ');
+          colors[color] = Number.parseInt(amt);
+        }
+
+        maxcolors = {
+          red: Math.max(maxcolors.red, colors['red']),
+          green: Math.max(maxcolors.green, colors['green']),
+          blue: Math.max(maxcolors.blue, colors['blue']),
+        };
+      }
+      const power = maxcolors.red * maxcolors.blue * maxcolors.green;
+      ans += power;
     }
 
     console.log(ans);
@@ -91,4 +95,5 @@ async function part2(path) {
   }
 }
 
-part1('part1/in2.txt');
+// part1('part1/in2.txt');
+part2('part2/in2.txt');
