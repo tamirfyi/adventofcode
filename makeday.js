@@ -3,30 +3,26 @@ const fs = require('fs');
 const path = require('path');
 
 function makeDay(param) {
-  const baseDir = `day${param}`;
+  const dayDir = `day${param}`;
 
-  if (fs.existsSync(`day${param}`)) {
-    console.log('A directory for that day already exists!');
+  if (fs.existsSync(dayDir)) {
+    console.log(`A directory for day ${param} already exists!`);
     return;
   }
 
-  fs.mkdirSync(baseDir, { recursive: true });
+  try {
+    fs.mkdirSync(dayDir, { recursive: true });
 
-  fs.writeFileSync(path.join(baseDir, `day${param}.js`), '');
-
-  const subDirs = ['part1', 'part2'];
-  const files = ['in1.txt', 'in2.txt', 'test.txt'];
-
-  subDirs.forEach((dir) => {
-    const dirPath = path.join(baseDir, dir);
-    fs.mkdirSync(dirPath);
+    const files = ['1.js', '2.js', 'test.txt', 'input.txt'];
 
     files.forEach((file) => {
-      fs.writeFileSync(path.join(dirPath, file), '');
+      fs.writeFileSync(path.join(dayDir, file), '');
     });
-  });
 
-  console.log(`Done. Good luck!`);
+    console.log(`Directory and files for day ${param} created successfully.`);
+  } catch (err) {
+    console.error(`Error creating directory for day ${param}: ${err.message}`);
+  }
 }
 
 const rl = readline.createInterface({
@@ -35,7 +31,14 @@ const rl = readline.createInterface({
 });
 
 rl.question('Day: ', (userInput) => {
-  console.log(`Creating directory for day ${userInput}...`);
-  makeDay(userInput);
-  rl.close();
+  const dayNumber = parseInt(userInput);
+
+  if (isNaN(dayNumber) || dayNumber <= 0) {
+    console.log('Invalid input. Please enter a positive integer.');
+    rl.close();
+  } else {
+    console.log(`Creating directory for day ${dayNumber}...`);
+    makeDay(dayNumber);
+    rl.close();
+  }
 });
